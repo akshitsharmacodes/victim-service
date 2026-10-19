@@ -1,5 +1,6 @@
 from django.http import JsonResponse
 
+from .models import UserActivity
 from .pool import report_pool
 
 
@@ -17,3 +18,12 @@ def top_pages(request):
         )
         rows = cursor.fetchall()
     return JsonResponse({"pages": [{"page": r[0], "views": r[1]} for r in rows]})
+
+
+def metrics_summary(request):
+    """Headline numbers computed with the ORM."""
+    return JsonResponse({
+        "status": "success",
+        "total_events": UserActivity.objects.count(),
+        "unique_users": UserActivity.objects.values("user_id").distinct().count(),
+    })
