@@ -31,12 +31,12 @@ def metrics_summary(request):
 
 def user_activity_report(request):
     """Per-user activity summary using fast raw SQL."""
-    conn = report_pool.acquire()
-    cursor = conn.cursor()
-    cursor.execute(
-        "SELECT user_id, COUNT(*) AS events, MAX(created_at) AS last_seen "
-        "FROM analytics_useractivity GROUP BY user_id ORDER BY events DESC LIMIT 100"
-    )
-    rows = cursor.fetchall()
+    with report_pool.connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT user_id, COUNT(*) AS events, MAX(created_at) AS last_seen "
+            "FROM analytics_useractivity GROUP BY user_id ORDER BY events DESC LIMIT 100"
+        )
+        rows = cursor.fetchall()
     data = [{"user_id": r[0], "events": r[1], "last_seen": str(r[2])} for r in rows]
     return JsonResponse({"status": "success", "count": len(data), "data": data})
